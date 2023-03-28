@@ -85,13 +85,15 @@ def pre_emph_test(coeff, canvas_size):
 
 
 configs = dict(
+    save_freq  = 50,
     shuffle_buffer = 1024,
     batch_size = 64,
-    image_size = 28,
     image_channels = 1,
     earlystopping_patience = 3,
     learning_rate = 1e-3,
-    epochs = 10
+    g_learning_rate=0.0002,
+    d_learning_rate=0.0002,
+    epochs = 100
 )
 
 
