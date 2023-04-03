@@ -6,6 +6,7 @@ import os
 from tensorflow.python.client import device_lib
 from scipy.io import wavfile
 from data_loader import pre_emph
+import wandb
 
 
 import glob
@@ -78,6 +79,13 @@ def pre_emph_test(coeff, canvas_size):
 
 def main(_):
     print('Parsed arguments: ', FLAGS.__flags)
+
+    # Initialize a new W&B run
+    wandb.login(key="dcc04c9df77219bb158df4c4ac5ab2597a0c00fc")
+    wandb.init(project="Exploring Self-Attention in Multi-Generator GAN",
+               notes="ISEGAN",
+               tags=["baseline", "paper1"],
+               config=FLAGS)
 
     # make save path if it is required
     if not os.path.exists(FLAGS.save_path):

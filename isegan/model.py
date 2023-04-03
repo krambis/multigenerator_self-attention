@@ -13,6 +13,9 @@ import timeit
 import os
 import shutil
 
+
+import wandb
+
 class Model(object):
     def __init__(self, name='BaseModel'):
         self.name = name
@@ -420,12 +423,19 @@ class SEGAN(Model):
                                                                       config.epoch * num_batches,
                                                                       curr_epoch,
                                                                       d_rl_loss)
+                wlog = {}
                 for nr in range(self.iteration):
                     s += 'd_fk_loss' + str(nr) + ' = {:.5f} '.format(d_fk_loss[nr])
+                    wlog['d_fk_loss' + str(nr)] = d_fk_loss[nr]
                 s += 'g_adv_loss = {:.5f} '.format(g_adv_loss)
+                wlog['g_adv_loss'] = g_adv_loss
+
                 for nr in range(self.iteration):
                     s += 'g_l1_loss' + str(nr) + ' = {:.5f} '.format(g_l1_loss[nr]/self.weights[nr])
+                    wlog['g_l1_loss' + str(nr)] = g_l1_loss[nr]/self.weights[nr]
                 s += ' time/batch = {:.5f}, mtime/batch = {:.5f} '.format(end - start, np.mean(batch_timings))
+                wlog[' time/batch'] = (end - start, np.mean(batch_timings))
+                wandb.log(wlog)
                 print(s)
 
                 batch_idx += num_devices
@@ -460,7 +470,7 @@ class SEGAN(Model):
                             print('New noise std {} < lbound {}, setting 0.'.
                                   format(new_noise_std, config.denoise_lbound))
                             print('** De-activating noise layer **')
-                            # it it's lower than a lower bound, cancel out completely
+                            # if it's lower than a lower bound, cancel out completely
                             new_noise_std = 0.
                             self.deactivated_noise = True
                         else:
