@@ -183,6 +183,7 @@ class SEGAN(Model):
         self.gtruth_wavs.append(wavbatch)
         self.gtruth_noisy.append(noisybatch)
 
+
         # add channels dimension to manipulate in D and G
         wavbatch = tf.expand_dims(wavbatch, -1)
         noisybatch = tf.expand_dims(noisybatch, -1)
@@ -434,7 +435,8 @@ class SEGAN(Model):
                     s += 'g_l1_loss' + str(nr) + ' = {:.5f} '.format(g_l1_loss[nr]/self.weights[nr])
                     wlog['g_l1_loss' + str(nr)] = g_l1_loss[nr]/self.weights[nr]
                 s += ' time/batch = {:.5f}, mtime/batch = {:.5f} '.format(end - start, np.mean(batch_timings))
-                wlog[' time/batch'] = (end - start, np.mean(batch_timings))
+                wlog['time'] = (end - start)
+                wlog['batch'] =  np.mean(batch_timings)
                 wandb.log(wlog)
                 print(s)
 

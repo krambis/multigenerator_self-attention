@@ -1,13 +1,12 @@
 from __future__ import print_function
 import tensorflow as tf
 import numpy as np
-from model import SEGAN  # , SEAE
+from model import SEGAN#, SEAE
 import os
 from tensorflow.python.client import device_lib
 from scipy.io import wavfile
 from data_loader import pre_emph
 import wandb
-
 import glob
 
 devices = device_lib.list_local_devices()
@@ -17,11 +16,11 @@ flags.DEFINE_integer("seed", 111, "Random seed (Def: 111).")
 flags.DEFINE_integer("epoch", 150, "Epochs to train (Def: 150).")
 flags.DEFINE_integer("batch_size", 150, "Batch size (Def: 150).")
 flags.DEFINE_integer("save_freq", 50, "Batch save freq (Def: 50).")
-flags.DEFINE_integer("canvas_size", 2 ** 14, "Canvas size (Def: 2^14).")
+flags.DEFINE_integer("canvas_size", 2**14, "Canvas size (Def: 2^14).")
 flags.DEFINE_integer("denoise_epoch", 5, "Epoch where noise in disc is "
-                                         "removed (Def: 5).")
+                     "removed (Def: 5).")
 flags.DEFINE_integer("l1_remove_epoch", 150, "Epoch where L1 in G is "
-                                             "removed (Def: 150).")
+                     "removed (Def: 150).")
 flags.DEFINE_boolean("bias_deconv", False,
                      "Flag to specify if we bias deconvs (Def: False)")
 flags.DEFINE_boolean("bias_downconv", False,
@@ -38,8 +37,8 @@ flags.DEFINE_float("init_l1_weight", 100., "Init L1 lambda (Def: 100)")
 flags.DEFINE_integer("z_dim", 256, "Dimension of input noise to G (Def: 256).")
 flags.DEFINE_integer("z_depth", 256, "Depth of input noise to G (Def: 256).")
 flags.DEFINE_string("save_path", "segan_results", "Path to save out model "
-                                                  "files. (Def: dwavegan_model"
-                                                  ").")
+                    "files. (Def: dwavegan_model"
+                    ").")
 flags.DEFINE_string("g_nl", "leaky",
                     "Type of nonlinearity in G: leaky or prelu. (Def: leaky).")
 flags.DEFINE_string("model", "gan",
@@ -54,39 +53,41 @@ flags.DEFINE_float("d_learning_rate", 0.0002, "D learning_rate (Def: 0.0002)")
 flags.DEFINE_float("beta_1", 0.5, "Adam beta 1 (Def: 0.5)")
 flags.DEFINE_float("preemph", 0.95, "Pre-emph factor (Def: 0.95)")
 flags.DEFINE_string("synthesis_path", "dwavegan_samples", "Path to save output"
-                                                          " generated samples."
-                                                          " (Def: dwavegan_sam"
-                                                          "ples).")
-flags.DEFINE_string("e2e_dataset", "G:/codes/idsegan/data/segan.tfrecords", "TFRecords"
-                                                                            " (Def: data/"
-                                                                            "segan.tfrecords.")
+                    " generated samples."
+                    " (Def: dwavegan_sam"
+                    "ples).")
+flags.DEFINE_string("e2e_dataset", "data/segan.tfrecords", "TFRecords"
+                    " (Def: data/"
+                    "segan.tfrecords.")
 flags.DEFINE_string("save_clean_path", "test_clean_results",
                     "Path to save clean utts")
 flags.DEFINE_string("test_wav", None, "name of test wav (it won't train)")
 flags.DEFINE_string("test_wav_dir", None, "name of test wav directory (it won't train)")
 flags.DEFINE_string("weights", None, "Weights file")
 
-flags.DEFINE_integer("iteration", 2, "The number of iterations (Def: 2).")
+flags.DEFINE_integer("depth", 2, "The depth of DSEGAN (Def: 2).")
+flags.DEFINE_string("att_layer_ind", "5", "Layer at which attention take places (default: '5').")
+
 
 FLAGS = flags.FLAGS
 
 
 def pre_emph_test(coeff, canvas_size):
-    x_ = tf.placeholder(tf.float32, shape=[canvas_size, ])
+    x_ = tf.placeholder(tf.float32, shape=[canvas_size,])
     x_preemph = pre_emph(x_, coeff)
     return x_, x_preemph
-
 
 def main(_):
     print('Parsed arguments: ', FLAGS.__flags)
 
     # Initialize a new W&B run
-    #wandb.login(key="dcc04c9df77219bb158df4c4ac5ab2597a0c00fc")
+    wandb.login(key="dcc04c9df77219bb158df4c4ac5ab2597a0c00fc")
     wandb.init(project="Exploring Self-Attention in Multi-Generator GAN",
                entity="shaggy",
                notes="ISEGAN",
                tags=["baseline", "paper1"],
                config=FLAGS)
+
 
     # make save path if it is required
     if not os.path.exists(FLAGS.save_path):
@@ -97,6 +98,7 @@ def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
+    tf.enable_eager_execution(config=config)
     udevices = []
     for device in devices:
         if len(devices) > 1 and 'CPU' in device.name:
@@ -115,7 +117,7 @@ def main(_):
                 FLAGS.model))
         if FLAGS.test_wav is None and FLAGS.test_wav_dir is None:
             se_model.train(FLAGS, udevices)
-        elif FLAGS.test_wav is not None:  # test 1 file
+        elif FLAGS.test_wav is not None: # test 1 file
             if FLAGS.weights is None:
                 raise ValueError('weights must be specified!')
             print('Loading model weights...')
@@ -127,7 +129,7 @@ def main(_):
             wave = (2. / 65535.) * (wav_data.astype(np.float32) - 32767) + 1.
             if FLAGS.preemph > 0:
                 print('preemph test wave with {}'.format(FLAGS.preemph))
-                x_pholder, preemph_op = pre_emph_test(FLAGS.preemph, wave.shape[0])
+                x_pholder, preemph_op = pre_emph_test(FLAGS.preemph,wave.shape[0])
                 wave = sess.run(preemph_op, feed_dict={x_pholder: wave})
             print('test wave shape: ', wave.shape)
             print('test wave min:{}  max:{}'.format(np.min(wave), np.max(wave)))
@@ -135,15 +137,15 @@ def main(_):
             print('c wave min:{}  max:{}'.format(np.min(c_wave), np.max(c_wave)))
             wavfile.write(os.path.join(FLAGS.save_clean_path, wavname), int(16e3), c_wave)
             print('Done cleaning {} and saved to {}'.format(FLAGS.test_wav,
-                                                            os.path.join(FLAGS.save_clean_path, wavname)))
-        else:  # test 1 directory
+                                 os.path.join(FLAGS.save_clean_path, wavname)))
+        else: # test 1 directory
             if FLAGS.weights is None:
                 raise ValueError('weights must be specified!')
             print('Loading model weights...')
             se_model.load(FLAGS.save_path, FLAGS.weights)
 
             for test_wav in glob.glob(FLAGS.test_wav_dir + "*.wav"):
-                print(test_wav)
+                #print(test_wav)
                 fm, wav_data = wavfile.read(test_wav)
                 wavname = test_wav.split('/')[-1]
                 if fm != 16000:
@@ -159,7 +161,7 @@ def main(_):
                 print('c wave min:{}  max:{}'.format(np.min(c_wave), np.max(c_wave)))
                 wavfile.write(os.path.join(FLAGS.save_clean_path, wavname), int(16e3), c_wave)
                 print('Done cleaning {} and saved to {}'.format(test_wav,
-                                                                os.path.join(FLAGS.save_clean_path, wavname)))
+                                     os.path.join(FLAGS.save_clean_path, wavname)))
 
 
 if __name__ == '__main__':

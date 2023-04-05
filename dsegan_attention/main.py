@@ -89,6 +89,7 @@ def main(_):
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     config.allow_soft_placement = True
+    tf.enable_eager_execution(config=config)
     udevices = []
     for device in devices:
         if len(devices) > 1 and 'CPU' in device.name:
@@ -98,6 +99,7 @@ def main(_):
         udevices.append(device.name)
     # execute the session
     with tf.Session(config=config) as sess:
+
         if FLAGS.model == 'gan':
             print('Creating GAN model')
             se_model = SEGAN(sess, FLAGS, udevices)
@@ -134,7 +136,7 @@ def main(_):
             se_model.load(FLAGS.save_path, FLAGS.weights)
 
             for test_wav in glob.glob(FLAGS.test_wav_dir + "*.wav"):
-                print(test_wav)
+                #print(test_wav)
                 fm, wav_data = wavfile.read(test_wav)
                 wavname = test_wav.split('/')[-1]
                 if fm != 16000:

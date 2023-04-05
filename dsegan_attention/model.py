@@ -205,9 +205,9 @@ class SEGAN(Model):
                 self.alpha_summ = []
                 for nr in range(self.depth):
                     self.alpha_summ.append([])
-                    for m, ref_alpha_nr in enumerate(self.ref_alpha[nr]):
-                        # add a summary per alpha
-                        self.alpha_summ[nr].append(histogram_summary('alpha_{}_{}'.format(nr, m), ref_alpha_nr))
+                    # for m, ref_alpha_nr in enumerate(self.ref_alpha[nr]):
+                    #     # add a summary per alpha
+                    #     self.alpha_summ[nr].append(histogram_summary('alpha_{}_{}'.format(nr, m), ref_alpha_nr))
             # make a dummy copy of discriminator to have variables and then
             # be able to set up the variable reuse for all other devices
             # merge along channels and this would be a real batch
