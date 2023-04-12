@@ -66,7 +66,8 @@ flags.DEFINE_string("test_wav_dir", None, "name of test wav directory (it won't 
 flags.DEFINE_string("weights", None, "Weights file")
 
 flags.DEFINE_integer("depth", 2, "The depth of DSEGAN (Def: 2).")
-flags.DEFINE_string("att_layer_ind", "5", "Layer at which attention take places (default: '5').")
+flags.DEFINE_string("att_layer_ind", "3,4,5", "Layer at which attention take places (default: '5').")
+flags.DEFINE_string("attention_generation", "1", "Layer at which attention take places (default: '5').")
 
 
 FLAGS = flags.FLAGS

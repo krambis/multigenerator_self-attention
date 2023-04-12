@@ -105,6 +105,7 @@ class SEGAN(Model):
         # indices of decoder's self-attention conv layers
         self.dec_att_layer_ind = [(len(self.g_enc_depths) - ind - 2) for ind in self.enc_att_layer_ind if
                                   ind < (len(self.g_enc_depths) - 1)]
+        self.attention_generator = args.attention_generator
 
         # self.disc_noise_std_summ = scalar_summary('disc_noise_std', self.disc_noise_std)
         self.e2e_dataset = args.e2e_dataset
@@ -118,8 +119,10 @@ class SEGAN(Model):
         self.g_nl = args.g_nl
         if args.g_type == 'ae':
             self.generator = AEGenerator(self)
+            self.generator_attention  = AEGenerator_Attention(self)
         elif args.g_type == 'dwave':
             self.generator = Generator(self)
+            #self.generator_attention = Generator_Attention(self)
         else:
             raise ValueError('Unrecognized G type {}'.format(args.g_type))
 
@@ -215,9 +218,15 @@ class SEGAN(Model):
             dummy = discriminator(self, dummy_joint, reuse=False)
 
         Gs, zs = self.generator(noisybatch, is_ref=False, spk=None, do_prelu=do_prelu)
+        Gs_attention, zs_attention  = self.generator_attention(noisybatch, is_ref=False, spk=None, do_prelu=do_prelu)
         for nr in range(self.depth):
-            self.Gs[nr].append(Gs[nr])
-            self.zs[nr].append(zs[nr])
+            #TODO: set the generator to set attention to.
+            if nr == self.attention_generator:
+                self.Gs[nr].append(Gs_attention[nr])
+                self.zs[nr].append(zs_attention[nr])
+            else:
+                self.Gs[nr].append(Gs[nr])
+                self.zs[nr].append(zs[nr])
 
         # add new dimension to merge with other pairs
         D_rl_joint = tf.concat([wavbatch, noisybatch], 2)  # real
