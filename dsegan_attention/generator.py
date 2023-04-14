@@ -277,7 +277,8 @@ class AEGenerator_Attention(object):
                     kwidth=kwidth,
                     init=tf.truncated_normal_initializer(stddev=0.02),
                     bias_init=bias_init,
-                    name='enc_{}'.format(layer_idx))
+                    name='enc_{}'.format(layer_idx)
+                  )
                 if is_ref:
                     print('Downconv {} -> {}'.format(h_i.get_shape(), h_i_dwn.get_shape()))
                 h_i = h_i_dwn

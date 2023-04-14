@@ -119,10 +119,10 @@ class SEGAN(Model):
         self.g_nl = args.g_nl
         if args.g_type == 'ae':
             self.generator = AEGenerator(self)
-            self.generator_attention  = AEGenerator_Attention(self)
+            self.generator_attention = AEGenerator_Attention(self)
         elif args.g_type == 'dwave':
             self.generator = Generator(self)
-            #self.generator_attention = Generator_Attention(self)
+            # self.generator_attention = Generator_Attention(self)
         else:
             raise ValueError('Unrecognized G type {}'.format(args.g_type))
 
@@ -200,17 +200,20 @@ class SEGAN(Model):
             do_prelu = True
         if gpu_idx == 0:
             ref_Gs = self.generator(noisybatch, is_ref=True, spk=None, do_prelu=do_prelu)
+            ref_GS_attention  =self.generator_attention(noisybatch, is_ref=True, spk=None, do_prelu=do_prelu)
             print('num of G returned: ', len(ref_Gs))
             self.reference_G = ref_Gs[0]  # returned wave by the generator
             self.ref_z = ref_Gs[1]  # returned z by the generator
+            self.reference_G_attention = ref_Gs[0]  # returned wave by the generator
+            self.ref_z_attention = ref_Gs[1]  # returned z by the generator
             if do_prelu:
                 self.ref_alpha = ref_Gs[2]
                 self.alpha_summ = []
                 for nr in range(self.depth):
                     self.alpha_summ.append([])
-                    # for m, ref_alpha_nr in enumerate(self.ref_alpha[nr]):
-                    #     # add a summary per alpha
-                    #     self.alpha_summ[nr].append(histogram_summary('alpha_{}_{}'.format(nr, m), ref_alpha_nr))
+                    for m, ref_alpha_nr in enumerate(self.ref_alpha[nr]):
+                        # add a summary per alpha
+                        self.alpha_summ[nr].append(histogram_summary('alpha_{}_{}'.format(nr, m), ref_alpha_nr))
             # make a dummy copy of discriminator to have variables and then
             # be able to set up the variable reuse for all other devices
             # merge along channels and this would be a real batch
@@ -218,12 +221,16 @@ class SEGAN(Model):
             dummy = discriminator(self, dummy_joint, reuse=False)
 
         Gs, zs = self.generator(noisybatch, is_ref=False, spk=None, do_prelu=do_prelu)
-        Gs_attention, zs_attention  = self.generator_attention(noisybatch, is_ref=False, spk=None, do_prelu=do_prelu)
+        print("First Pick")
+        Gs_attention, zs_attention = self.generator_attention(noisybatch, is_ref=False, spk=None, do_prelu=do_prelu)
+        print("Second Pick")
         for nr in range(self.depth):
-            #TODO: set the generator to set attention to.
+            # TODO: set the generator to set attention to.
             if nr == self.attention_generator:
                 self.Gs[nr].append(Gs_attention[nr])
+
                 self.zs[nr].append(zs_attention[nr])
+
             else:
                 self.Gs[nr].append(Gs[nr])
                 self.zs[nr].append(zs[nr])
