@@ -22,4 +22,24 @@ Multi-stage or multi-generator generative adversarial networks (GANs) have recen
 
 
 
-## References 
+## References
+
+```bibtex
+
+@Article{app13169217,
+AUTHOR = {Asiedu Asante, Bismark Kweku and Broni-Bediako, Clifford and Imamura, Hiroki},
+TITLE = {Exploring Multi-Stage GAN with Self-Attention for Speech Enhancement},
+JOURNAL = {Applied Sciences},
+VOLUME = {13},
+YEAR = {2023},
+NUMBER = {16},
+ARTICLE-NUMBER = {9217},
+URL = {https://www.mdpi.com/2076-3417/13/16/9217},
+ISSN = {2076-3417},
+
+DOI = {10.3390/app13169217}
+}
+
+
+
+```
